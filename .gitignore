@@ -1,0 +1,9 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Vim temporary files
+*.swp
+
+# Media files
+media_root/*
