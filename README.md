@@ -6,7 +6,7 @@ Download the repo:
 
     git clone https://github.com/depaolim/django_auth_media.git
 
-The app is tested on Django 1.6.7 and has no dependency from other packages (apart from django itsef)
+The app is tested on Django 1.6.7 and has no dependency from other packages (apart from django itself)
 
 
 ## Usage
@@ -35,7 +35,7 @@ Steps:
         }
 
 
-5. Add urlpatters in urls.py
+5. Add urlpatterns in urls.py
 
 6. Use auth\_media.AuthMediaField in place of models.FileField
 
