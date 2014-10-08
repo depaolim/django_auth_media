@@ -15,11 +15,25 @@ Steps:
 
 1. Add the folder django\_auth\_media to your PYTHONPATH
 
-2. Add the app django\_auth\_media to INSTALLED\_APPS in settings.py
+2. Use auth\_media.AuthMediaField in place of models.FileField
 
-3. Add MEDIA\_URL  and MEDIA\_ROOT in settings.py
+    from django.db import models
+    from auth_media import AuthFileField
 
-4. Add MEDIA\_REDIRECT in settings.py
+    class MediaModel(models.Model):
+        media_field = AuthFileField(upload_to="media_model_folder")
+
+3. Add urlpatterns in urls.py
+
+    import auth_media
+    urlpatterns += auth_media.urlpatterns()
+
+4. Add MEDIA\_URL  and MEDIA\_ROOT in settings.py
+
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = 'path_to_files_on_file_system'
+
+5. Add MEDIA\_REDIRECT in settings.py
 
     Use the same path used in "location" in nginx config. Example:
 
@@ -35,14 +49,10 @@ Steps:
         }
 
 
-5. Add urlpatterns in urls.py
-
-6. Use auth\_media.AuthMediaField in place of models.FileField
-
-
 ## Test
 
 To run tests:
 
+    cd testproj
     pip install -r requirements.txt
-    python manage.py test
+    python manage.py test testapp auth_media

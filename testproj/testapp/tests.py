@@ -16,7 +16,7 @@ class TestAcceptance(TestCase):
         self.u.save()
         self.client.login(username='N', password='P')
         self.expected_media_url = (
-            '/media/test_app/MediaModel/{}/media_field'.format(self.mm.pk))
+            '/media/testapp/MediaModel/{}/media_field'.format(self.mm.pk))
 
     def test_url(self):
         self.assertEquals(self.mm.media_field.url, self.expected_media_url)

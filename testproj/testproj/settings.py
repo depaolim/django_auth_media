@@ -1,5 +1,5 @@
 """
-Django settings for django_auth_media project.
+Django settings for testproj project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.6/topics/settings/
@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '^(^@l6eb!@78)9+n@)+-mdlxv27^q03u@!+2gta14p&!&*15f9'
+SECRET_KEY = '0y%u^k6f%m)nh1zl-+6sr+@3^8v!8xqg(3-s_q6g!s#a^(k1x1'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -37,7 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'auth_media',
-    'test_app',
+    'testapp',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -49,9 +49,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'django_auth_media.urls'
+ROOT_URLCONF = 'testproj.urls'
 
-WSGI_APPLICATION = 'django_auth_media.wsgi.application'
+WSGI_APPLICATION = 'testproj.wsgi.application'
 
 
 # Database
@@ -82,6 +82,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+# Media files (FileField, AuthFileField, ...)
+# served via auth_media app
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = 'media_root/'

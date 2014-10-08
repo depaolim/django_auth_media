@@ -5,12 +5,11 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     # Examples:
-    # url(r'^$', 'django_auth_media.views.home', name='home'),
+    # url(r'^$', 'testproj.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
 )
 
 import auth_media
-
 urlpatterns += auth_media.urlpatterns()
