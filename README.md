@@ -23,15 +23,18 @@ Steps:
     class MediaModel(models.Model):
         media_field = AuthFileField(upload_to="media_model_folder")
 
+
 3. Add urlpatterns in urls.py
 
     import auth_media
     urlpatterns += auth_media.urlpatterns()
 
+
 4. Add MEDIA\_URL  and MEDIA\_ROOT in settings.py
 
     MEDIA_URL = '/media/'
     MEDIA_ROOT = 'path_to_files_on_file_system'
+
 
 5. Add MEDIA\_REDIRECT in settings.py
 
