@@ -10,7 +10,7 @@ from django.http import HttpRequest, HttpResponse
 from django.test import TestCase
 
 from .models import do_check_auth, AuthFileField
-from .views import do_serve, serve
+from .views import do_serve, serve, urlpatterns
 
 
 class Dummy(models.Model):
@@ -157,6 +157,7 @@ class TestAuthFileField(TestCase):
 
 
 class TestPatterns(TestCase):
+    urls = urlpatterns()
 
     def test_reverse(self):
         url = reverse('auth_media', kwargs={
