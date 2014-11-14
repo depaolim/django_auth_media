@@ -2,8 +2,9 @@
 __pycache__/
 *.py[cod]
 
-# Vim temporary files
+# Vim support files
 *.swp
+.ropeproject/*
 
 # Media files
 testproj/media_root/*

@@ -1,13 +1,18 @@
+import StringIO
+import zipfile
+
 from django.contrib.auth.models import Permission, User
 from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage
 from django.core.urlresolvers import resolve, reverse
+from django.db import models
 from django.http import HttpRequest, HttpResponse
 from django.test import TestCase
 
-from .models import *
+from .models import do_check_auth, AuthFileField
+from .views import do_serve, serve
 
-    
+
 class Dummy(models.Model):
     f_a = AuthFileField(upload_to="xxx")
     f_b = AuthFileField(upload_to="xxx")
@@ -77,7 +82,6 @@ class TestDoCheckAuth(TestCase):
 class TestDoServe(TestCase):
 
     def setUp(self):
-        import StringIO, zipfile
         stream = StringIO.StringIO()
         with zipfile.ZipFile(stream, "w") as zf:
             zf.writestr("sample.csv", "csv,file,content")
@@ -156,16 +160,17 @@ class TestPatterns(TestCase):
 
     def test_reverse(self):
         url = reverse('auth_media', kwargs={
-                'app_label': 'auth_media', 'object_name': 'Dummy',
-                'object_pk': '1', 'field_name': 'f_a'}
-            )
+            'app_label': 'auth_media', 'object_name': 'Dummy',
+            'object_pk': '1', 'field_name': 'f_a'}
+        )
         self.assertEquals(url, "/media/auth_media/Dummy/1/f_a")
 
     def test_resolve(self):
         resolver = resolve("/media/auth_media/Dummy/1/f_a")
         self.assertEquals(resolver.kwargs, {
-                'object_name': 'Dummy', 'field_name': 'f_a',
-                'object_pk': '1', 'app_label': 'auth_media'})
+            'object_name': 'Dummy', 'field_name': 'f_a',
+            'object_pk': '1', 'app_label': 'auth_media'}
+        )
         self.assertEqual(resolver.func.func_name, 'serve')
 
 
