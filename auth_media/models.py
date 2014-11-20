@@ -1,17 +1,15 @@
 from django.db import models
 
 
-def do_check_auth(request, app_label, object_name, instance_pk, field_name):
-    model = models.loading.get_model(app_label, object_name)
-    instance = model.objects.get(pk=instance_pk)
-    field = getattr(instance, field_name)
+def do_check_auth(request, instance, field_name):
     if not request.user.is_superuser:
         try:
-            can_view = getattr(model, "can_view_" + field_name)
+            can_view = getattr(instance, "can_view_" + field_name)
         except AttributeError:
             return
-        if not can_view(instance, request):
+        if not can_view(request):
             return
+    field = getattr(instance, field_name)
     return field.name
 
 

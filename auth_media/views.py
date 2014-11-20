@@ -3,7 +3,9 @@ import re
 
 from django.conf import settings
 from django.conf.urls import patterns, url
+from django.db import models
 from django.http import HttpResponseNotFound
+from django.shortcuts import get_object_or_404
 from django.utils.module_loading import import_by_path
 
 from .models import do_check_auth
@@ -24,7 +26,9 @@ do_serve = SERVERS["xaccell"]
 def serve(
         request, app_label, object_name, object_pk, field_name,
         do_check_auth=do_check_auth, do_serve=do_serve):
-    path = do_check_auth(request, app_label, object_name, object_pk, field_name)
+    model = models.loading.get_model(app_label, object_name)
+    instance = get_object_or_404(model, pk=object_pk)
+    path = do_check_auth(request, instance, field_name)
     if not path:
         return HttpResponseNotFound()
     return do_serve(request, path)

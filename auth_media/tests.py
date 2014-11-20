@@ -7,7 +7,7 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage
 from django.core.urlresolvers import resolve, reverse
 from django.db import models
-from django.http import HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from django.test import TestCase
 
 from .models import do_check_auth, AuthFileField
@@ -44,20 +44,18 @@ class TestDoCheckAuth(TestCase):
         self.da.save()
 
     def test_on_guard_and_not_found(self):
-        self.assertFalse(
-            do_check_auth(self.req, "auth_media", "Dummy", self.da.pk, "f_a"))
+        self.assertFalse(do_check_auth(self.req, self.da, "f_a"))
 
     def test_on_guard_and_serve(self):
         self.da.f_a.save("NAME-A", ContentFile("CONTENT-A"))
         self.da.guard = True
         self.da.save()
         self.assertRegexpMatches(
-            do_check_auth(self.req, "auth_media", "Dummy", self.da.pk, "f_a"),
+            do_check_auth(self.req, self.da, "f_a"),
             "xxx/NAME-A_?\d*")
 
     def test_on_perm_and_not_found(self):
-        self.assertFalse(
-            do_check_auth(self.req, "auth_media", "Dummy", self.da.pk, "f_b"))
+        self.assertFalse(do_check_auth(self.req, self.da, "f_b"))
 
     def test_on_perm_and_serve(self):
         self.da.f_b.save("NAME-B", ContentFile("CONTENT-B"))
@@ -65,19 +63,18 @@ class TestDoCheckAuth(TestCase):
             Permission.objects.get(codename="view_file_b"))
         self.u.save()
         self.assertRegexpMatches(
-            do_check_auth(self.req, "auth_media", "Dummy", self.da.pk, "f_b"),
+            do_check_auth(self.req, self.da, "f_b"),
             "xxx/NAME-B_?\d*")
 
     def test_on_nothing_and_not_found(self):
-        self.assertFalse(do_check_auth(
-            self.req, "auth_media", "Dummy", self.da.pk, "f_c"))
+        self.assertFalse(do_check_auth(self.req, self.da, "f_c"))
 
     def test_on_nothing_and_serve(self):
         self.da.f_c.save("NAME-C", ContentFile("CONTENT-C"))
         self.u.is_superuser = True
         self.u.save()
         self.assertRegexpMatches(
-            do_check_auth(self.req, "auth_media", "Dummy", self.da.pk, "f_c"),
+            do_check_auth(self.req, self.da, "f_c"),
             "xxx/NAME-C_?\d*")
 
 
@@ -112,6 +109,8 @@ class TestServe(TestCase):
 
     def setUp(self):
         self._calls = []
+        self.dm = Dummy()
+        self.dm.save()
 
     def _dummy_method(self, result, *args):
         self._calls.append(args)
@@ -123,24 +122,34 @@ class TestServe(TestCase):
     def _assertNoMoreCalls(self):
         self.assertFalse(self._calls)
 
+    def test_internal_error_on_invalid_model(self):
+        self.assertRaises(
+            ValueError, serve,
+            "dummy_req", "auth_media", "Wrong", self.dm.pk + 1, "dummy_field",
+            do_check_auth=None, do_serve=None)
+
+    def test_404_on_invalid_instance(self):
+        self.assertRaises(
+            Http404, serve,
+            "dummy_req", "auth_media", "Dummy", self.dm.pk + 1, "dummy_field",
+            do_check_auth=None, do_serve=None)
+
     def test_on_not_authorized(self):
         response = serve(
-            "dummy_req", "dummy_app", "dummy_model", "dummy_pk", "dummy_field",
+            "dummy_req", "auth_media", "Dummy", self.dm.pk, "dummy_field",
             do_check_auth=lambda *args: self._dummy_method(None, *args),
             do_serve=None)
-        self._assertCall(
-            "dummy_req", "dummy_app", "dummy_model", "dummy_pk", "dummy_field")
+        self._assertCall("dummy_req", self.dm, "dummy_field")
         self._assertNoMoreCalls()
         self.assertEquals(response.status_code, 404)
 
     def test_on_authorized(self):
         response = serve(
-            "dummy_req", "dummy_app", "dummy_model", "dummy_pk", "dummy_field",
+            "dummy_req", "auth_media", "Dummy", self.dm.pk, "dummy_field",
             do_check_auth=lambda *args: self._dummy_method("SAMPLE_P", *args),
             do_serve=lambda *args: self._dummy_method(HttpResponse(), *args)
             )
-        self._assertCall(
-            "dummy_req", "dummy_app", "dummy_model", "dummy_pk", "dummy_field")
+        self._assertCall("dummy_req", self.dm, "dummy_field")
         self._assertCall("dummy_req", "SAMPLE_P")
         self._assertNoMoreCalls()
         self.assertEquals(response.status_code, 200)
