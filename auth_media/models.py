@@ -27,3 +27,7 @@ class AuthFieldFile(models.fields.files.FieldFile):
 class AuthFileField(models.FileField):
 
     attr_class = AuthFieldFile
+
+    def __init__(self, *args, **kwargs):
+        engine = kwargs.pop("engine", None)
+        super(AuthFileField, self).__init__(*args, **kwargs)

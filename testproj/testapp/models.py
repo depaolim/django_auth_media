@@ -4,4 +4,6 @@ from auth_media import AuthFileField
 
 
 class MediaModel(models.Model):
-    media_field = AuthFileField(upload_to="media_model_folder")
+    slow_media = AuthFileField(upload_to="slow")
+    xaccel_media = AuthFileField(upload_to="xaccel", engine='xaccel')
+    secure_media = AuthFileField(upload_to="secure", engine='secure')
