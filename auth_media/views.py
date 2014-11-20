@@ -8,17 +8,17 @@ from django.utils.module_loading import import_by_path
 
 from .models import do_check_auth
 
-BACKENDS = {}
+SERVERS = {}
 
 
 for name, props in settings.MEDIA_SERVERS.items():
     engine_path = props.pop('ENGINE')
     kwargs = {name.lower(): value for name, value in props.items()}
     _do_serve = import_by_path(engine_path)
-    BACKENDS[name] = functools.partial(_do_serve, **kwargs)
+    SERVERS[name] = functools.partial(_do_serve, **kwargs)
 
 
-do_serve = BACKENDS["xaccell"]
+do_serve = SERVERS["xaccell"]
 
 
 def serve(

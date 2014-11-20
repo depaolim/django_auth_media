@@ -29,5 +29,5 @@ class AuthFileField(models.FileField):
     attr_class = AuthFieldFile
 
     def __init__(self, *args, **kwargs):
-        engine = kwargs.pop("engine", None)
+        self.media_server = kwargs.pop("media_server", None)
         super(AuthFileField, self).__init__(*args, **kwargs)
