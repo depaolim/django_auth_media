@@ -90,3 +90,15 @@ STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = 'media_root/'
 MEDIA_REDIRECT = '/internal_media'
+
+MEDIA_SERVERS = {
+    'default': {
+        'ENGINE': "auth_media.backends.interim",
+    },
+    'xaccell': {
+        'ENGINE': "auth_media.backends.xaccell",
+    },
+    'secure': {
+        'ENGINE': "auth_media.backends.secure_link",
+    },
+}
