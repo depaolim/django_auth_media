@@ -1,6 +1,7 @@
 import StringIO
 import zipfile
 
+from django.conf import settings
 from django.contrib.auth.models import Permission, User
 from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage
@@ -10,7 +11,8 @@ from django.http import HttpRequest, HttpResponse
 from django.test import TestCase
 
 from .models import do_check_auth, AuthFileField
-from .views import do_serve, serve, urlpatterns
+from .views import serve, urlpatterns
+from .backends import xaccell
 
 
 class Dummy(models.Model):
@@ -79,7 +81,7 @@ class TestDoCheckAuth(TestCase):
             "xxx/NAME-C_?\d*")
 
 
-class TestDoServe(TestCase):
+class TestXAccell(TestCase):
 
     def setUp(self):
         stream = StringIO.StringIO()
@@ -95,10 +97,11 @@ class TestDoServe(TestCase):
 
     def test_valid_path(self):
         req = HttpRequest()
-        r = do_serve(req, self.media_name, media_redirect="media_redirect")
+        r = xaccell(
+            req, self.media_name, root=settings.MEDIA_ROOT, redirect="redir")
         self.assertEquals(r.status_code, 200)
         expected_headers = [
-            "X-Accel-Redirect: media_redirect/my_folder/my_name.zip",
+            "X-Accel-Redirect: redir/my_folder/my_name.zip",
             "Content-Type: application/zip",
             "Content-Disposition: attachment; filename=my_name.zip"
             ]

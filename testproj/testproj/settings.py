@@ -89,7 +89,6 @@ STATIC_URL = '/static/'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = 'media_root/'
-MEDIA_REDIRECT = '/internal_media'
 
 MEDIA_SERVERS = {
     'default': {
@@ -97,6 +96,7 @@ MEDIA_SERVERS = {
     },
     'xaccell': {
         'ENGINE': "auth_media.backends.xaccell",
+        'REDIRECT': "/internal_media",
     },
     'secure': {
         'ENGINE': "auth_media.backends.secure_link",

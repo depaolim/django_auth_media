@@ -1,3 +1,4 @@
+import functools
 import re
 
 from django.conf import settings
@@ -11,9 +12,10 @@ BACKENDS = {}
 
 
 for name, props in settings.MEDIA_SERVERS.items():
-    engine_path = props['ENGINE']
+    engine_path = props.pop('ENGINE')
+    kwargs = {name.lower(): value for name, value in props.items()}
     _do_serve = import_by_path(engine_path)
-    BACKENDS[name] = _do_serve
+    BACKENDS[name] = functools.partial(_do_serve, **kwargs)
 
 
 do_serve = BACKENDS["xaccell"]
