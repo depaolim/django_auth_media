@@ -2,6 +2,7 @@ from django.db import models
 
 
 def do_check_auth(request, instance, field_name):
+    field = getattr(instance, field_name)
     if not request.user.is_superuser:
         try:
             can_view = getattr(instance, "can_view_" + field_name)
@@ -9,7 +10,6 @@ def do_check_auth(request, instance, field_name):
             return
         if not can_view(request):
             return
-    field = getattr(instance, field_name)
     return field.name
 
 

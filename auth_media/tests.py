@@ -134,22 +134,28 @@ class TestServe(TestCase):
             "dummy_req", "auth_media", "Dummy", self.dm.pk + 1, "dummy_field",
             do_check_auth=None, do_serve=None)
 
-    def test_on_not_authorized(self):
-        response = serve(
+    def test_internal_error_on_invalid_field_name(self):
+        self.assertRaises(
+            AttributeError, serve,
             "dummy_req", "auth_media", "Dummy", self.dm.pk, "dummy_field",
+            do_check_auth=None, do_serve=None)
+
+    def test_on_not_authorized(self):
+        self.assertRaises(
+            Http404, serve,
+            "dummy_req", "auth_media", "Dummy", self.dm.pk, "f_a",
             do_check_auth=lambda *args: self._dummy_method(None, *args),
             do_serve=None)
-        self._assertCall("dummy_req", self.dm, "dummy_field")
+        self._assertCall("dummy_req", self.dm, "f_a")
         self._assertNoMoreCalls()
-        self.assertEquals(response.status_code, 404)
 
     def test_on_authorized(self):
         response = serve(
-            "dummy_req", "auth_media", "Dummy", self.dm.pk, "dummy_field",
+            "dummy_req", "auth_media", "Dummy", self.dm.pk, "f_a",
             do_check_auth=lambda *args: self._dummy_method("SAMPLE_P", *args),
             do_serve=lambda *args: self._dummy_method(HttpResponse(), *args)
             )
-        self._assertCall("dummy_req", self.dm, "dummy_field")
+        self._assertCall("dummy_req", self.dm, "f_a")
         self._assertCall("dummy_req", "SAMPLE_P")
         self._assertNoMoreCalls()
         self.assertEquals(response.status_code, 200)
@@ -207,11 +213,11 @@ class TestAcceptance(TestCase):
         self.da.f_a.save("NAME", ContentFile("CONTENT"))
         self.da.guard = False
         self.da.save()
-        response = serve(
+        self.assertRaises(
+            Http404, serve,
             self.req, "auth_media", "Dummy", self.da.pk, "f_a",
             do_serve=dummy_do_serve)
         self.assertFalse(dummy_do_serve_calls)
-        self.assertEquals(response.status_code, 404)
 
     def test_authorized(self):
         dummy_do_serve_calls = []

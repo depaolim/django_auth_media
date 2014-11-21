@@ -4,7 +4,7 @@ import re
 from django.conf import settings
 from django.conf.urls import patterns, url
 from django.db import models
-from django.http import HttpResponseNotFound
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.module_loading import import_by_path
 
@@ -28,9 +28,10 @@ def serve(
         do_check_auth=do_check_auth, do_serve=do_serve):
     model = models.loading.get_model(app_label, object_name)
     instance = get_object_or_404(model, pk=object_pk)
+    field = getattr(instance, field_name)
     path = do_check_auth(request, instance, field_name)
     if not path:
-        return HttpResponseNotFound()
+        raise Http404
     return do_serve(request, path)
 
 
