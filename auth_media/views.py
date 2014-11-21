@@ -18,19 +18,19 @@ for name, props in settings.MEDIA_SERVERS.items():
     SERVERS[name] = functools.partial(_do_serve, **kwargs)
 
 
-do_serve = SERVERS["xaccell"]
-
-
 def serve(
         request, app_label, object_name, object_pk, field_name,
-        do_check_auth=lambda field, request: field.can_view(request),
-        do_serve=do_serve):
+        do_check_auth=lambda f, request: f.can_view(request),
+        do_serve=None):
     model = models.loading.get_model(app_label, object_name)
     instance = get_object_or_404(model, pk=object_pk)
-    field = getattr(instance, field_name)
-    if not do_check_auth(field, request):
+    field_file = getattr(instance, field_name)
+    if not do_check_auth(field_file, request):
         raise Http404
-    return do_serve(request, field.name)
+    if not do_serve:
+        ms = field_file.field.media_server
+        do_serve = SERVERS[ms if ms else "default"]
+    return do_serve(request, field_file.name)
 
 
 def urlpatterns(view=serve, **kwargs):

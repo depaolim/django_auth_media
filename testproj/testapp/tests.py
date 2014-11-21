@@ -2,6 +2,7 @@ import os
 
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.test import TestCase
 
 from .models import MediaModel
@@ -25,6 +26,11 @@ class TestAcceptance(TestCase):
         self.expected_xaccell_url = os.path.join(url_pattern, "xaccell_media")
         self.expected_secure_url = os.path.join(url_pattern, "secure_media")
         self.mm = mm
+
+    def tearDown(self):
+        default_storage.delete(self.mm.slow_media.name)
+        default_storage.delete(self.mm.xaccell_media.name)
+        default_storage.delete(self.mm.secure_media.name)
 
     def test_url(self):
         self.assertEquals(self.mm.slow_media.url, self.expected_slow_url)
@@ -73,6 +79,6 @@ class TestAcceptance(TestCase):
         self.assertRegexpMatches(
             r['Location'],
             (
-                u'/protected/921ddd2a942e977cf646e892599ef099/'
-                u'media_model_folder/fname(_\w+)?xls')
+                u'/secure_media/42f5aacdc3f3ad9005ad7dc795ce877e/'
+                u'secure/fname(_\w+)?.xls')
         )

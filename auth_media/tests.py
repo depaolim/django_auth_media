@@ -4,15 +4,15 @@ import zipfile
 from django.conf import settings
 from django.contrib.auth.models import Permission, User
 from django.core.files.base import ContentFile
-from django.core.files.storage import FileSystemStorage
+from django.core.files.storage import default_storage
 from django.core.urlresolvers import resolve, reverse
 from django.db import models
 from django.http import Http404, HttpRequest, HttpResponse
 from django.test import TestCase
 
+from .backends import secure_link, xaccell
 from .models import AuthFileField
 from .views import serve, urlpatterns
-from .backends import xaccell
 
 
 class Dummy(models.Model):
@@ -33,21 +33,35 @@ class Dummy(models.Model):
         return request.user.has_perm(u'auth_media.view_file_b')
 
 
-class TestXAccell(TestCase):
+class TestBackends(TestCase):
 
     def setUp(self):
         stream = StringIO.StringIO()
         with zipfile.ZipFile(stream, "w") as zf:
             zf.writestr("sample.csv", "csv,file,content")
-        self.fsf = FileSystemStorage()
-        self.media_name = self.fsf.save(
+        self.media_name = default_storage.save(
             "my_folder/my_name.zip",
             ContentFile(stream.getvalue()))
 
     def tearDown(self):
-        self.fsf.delete(self.media_name)
+        default_storage.delete(self.media_name)
 
-    def test_valid_path(self):
+    def test_secure_link(self):
+        req = HttpRequest()
+        r = secure_link(
+            req, self.media_name,
+            secret="SuP3rS3cr3t", redirect="media_secure")
+        self.assertEquals(r.status_code, 302)
+        expected_headers = [
+            "Content-Type: text/html; charset=utf-8",
+            (
+                "Location: "
+                "media_secure/1f4cf3b8507c40387c8e95a6d5ea1cc6/"
+                "my_folder/my_name.zip"),
+            ]
+        self.assertEquals(r.serialize_headers(), "\r\n".join(expected_headers))
+
+    def test_xaccell(self):
         req = HttpRequest()
         r = xaccell(
             req, self.media_name, root=settings.MEDIA_ROOT, redirect="redir")

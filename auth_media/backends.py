@@ -1,8 +1,9 @@
+import hashlib
 import mimetypes
 import os
 
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 
 
 def interim(request, path):
@@ -21,5 +22,7 @@ def xaccell(request, path, root=None, redirect=None):
     return response
 
 
-def secure_link(request, path):
-    pass
+def secure_link(request, path, secret, redirect):
+    hash = hashlib.md5("{}{}".format(path, secret)).hexdigest()
+    response = HttpResponseRedirect(os.path.join(redirect, hash, path))
+    return response

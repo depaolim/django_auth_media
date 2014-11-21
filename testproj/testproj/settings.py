@@ -100,5 +100,7 @@ MEDIA_SERVERS = {
     },
     'secure': {
         'ENGINE': "auth_media.backends.secure_link",
+        'SECRET': "SUpeRSecREt",
+        'REDIRECT': "/secure_media",
     },
 }
