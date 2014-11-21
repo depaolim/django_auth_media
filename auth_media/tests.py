@@ -10,7 +10,7 @@ from django.db import models
 from django.http import Http404, HttpRequest, HttpResponse
 from django.test import TestCase
 
-from .backends import secure_link, xaccell
+from .backends import interim, secure_link, xaccell
 from .models import AuthFileField
 from .views import serve, urlpatterns
 
@@ -45,6 +45,12 @@ class TestBackends(TestCase):
 
     def tearDown(self):
         default_storage.delete(self.media_name)
+
+    def test_interim(self):
+        req = HttpRequest()
+        r = interim(req, self.media_name)
+        self.assertEquals(r.status_code, 200)
+        self.assertEquals(b''.join(r.streaming_content)[0:2], b'PK')
 
     def test_secure_link(self):
         req = HttpRequest()

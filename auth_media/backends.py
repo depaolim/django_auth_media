@@ -4,10 +4,11 @@ import os
 
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
+from django.views.static import serve
 
 
 def interim(request, path):
-    pass
+    return serve(request, path, settings.MEDIA_ROOT)
 
 
 def xaccell(request, path, root=None, redirect=None):

@@ -13,7 +13,7 @@ class TestAcceptance(TestCase):
     def setUp(self):
         mm = MediaModel()
         name, content = "fname.xls", ContentFile("FILE-CONTENT")
-        mm.slow_media.save(name, content)
+        mm.interim_media.save(name, content)
         mm.xaccell_media.save(name, content)
         mm.secure_media.save(name, content)
         mm.save()
@@ -22,35 +22,35 @@ class TestAcceptance(TestCase):
         self.u.save()
         self.client.login(username='N', password='P')
         url_pattern = os.path.join('/media/testapp/MediaModel/', str(mm.pk))
-        self.expected_slow_url = os.path.join(url_pattern, "slow_media")
+        self.expected_interim_url = os.path.join(url_pattern, "interim_media")
         self.expected_xaccell_url = os.path.join(url_pattern, "xaccell_media")
         self.expected_secure_url = os.path.join(url_pattern, "secure_media")
         self.mm = mm
 
     def tearDown(self):
-        default_storage.delete(self.mm.slow_media.name)
+        default_storage.delete(self.mm.interim_media.name)
         default_storage.delete(self.mm.xaccell_media.name)
         default_storage.delete(self.mm.secure_media.name)
 
     def test_url(self):
-        self.assertEquals(self.mm.slow_media.url, self.expected_slow_url)
+        self.assertEquals(self.mm.interim_media.url, self.expected_interim_url)
         self.assertEquals(self.mm.xaccell_media.url, self.expected_xaccell_url)
         self.assertEquals(self.mm.secure_media.url, self.expected_secure_url)
 
     def test_download_not_available(self):
-        r = self.client.get(self.expected_slow_url)
+        r = self.client.get(self.expected_interim_url)
         self.assertEquals(r.status_code, 404)
         r = self.client.get(self.expected_xaccell_url)
         self.assertEquals(r.status_code, 404)
         r = self.client.get(self.expected_secure_url)
         self.assertEquals(r.status_code, 404)
 
-    def test_download_slow(self):
+    def test_download_interim(self):
         self.u.is_superuser = True
         self.u.save()
-        r = self.client.get(self.expected_slow_url)
+        r = self.client.get(self.expected_interim_url)
         self.assertEquals(r.status_code, 200)
-        self.assertEquals(r.content, "FILE-CONTENT")
+        self.assertEquals(b''.join(r.streaming_content), "FILE-CONTENT")
 
     def test_download_xaccell(self):
         self.u.is_superuser = True
