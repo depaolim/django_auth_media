@@ -12,11 +12,12 @@ class AuthFieldFile(models.fields.files.FieldFile):
     def can_view(self, request):
         if request.user.is_superuser:
             return True
-        try:
-            f_can_view = getattr(self.instance, "can_view_" + self.field.name)
-        except AttributeError:
+        p = self.field.permission
+        if not p:
             return False
-        return f_can_view(request)
+        if callable(p):
+            return p(self.instance, request)
+        return request.user.has_perm(p)
 
 
 class AuthFileField(models.FileField):
@@ -25,4 +26,5 @@ class AuthFileField(models.FileField):
 
     def __init__(self, *args, **kwargs):
         self.media_server = kwargs.pop("media_server", None)
+        self.permission = kwargs.pop("permission", None)
         super(AuthFileField, self).__init__(*args, **kwargs)

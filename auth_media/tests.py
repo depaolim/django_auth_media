@@ -15,9 +15,14 @@ from .models import AuthFileField
 from .views import serve, urlpatterns
 
 
+def can_view_dummy_f_a(dummy, request):
+    return dummy.guard
+
+
 class Dummy(models.Model):
-    f_a = AuthFileField(upload_to="xxx")
-    f_b = AuthFileField(upload_to="xxx")
+    f_a = AuthFileField(upload_to="xxx", permission=can_view_dummy_f_a)
+    f_b = AuthFileField(
+        upload_to="xxx", permission=u'auth_media.view_file_b')
     f_c = AuthFileField(upload_to="xxx")
     guard = models.BooleanField(default=False)
 
@@ -25,12 +30,6 @@ class Dummy(models.Model):
         permissions = (
             ("view_file_b", "Can view file"),
         )
-
-    def can_view_f_a(self, request):
-        return self.guard
-
-    def can_view_f_b(self, request):
-        return request.user.has_perm(u'auth_media.view_file_b')
 
 
 class TestBackends(TestCase):
