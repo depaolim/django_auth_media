@@ -99,7 +99,7 @@ class TestServe(TestCase):
 
     def test_internal_error_on_invalid_model(self):
         self.assertRaises(
-            ValueError, serve,
+            Http404, serve,
             "dummy_req", "auth_media", "Wrong", self.dm.pk + 1, "dummy_field",
             do_check_auth=None, do_serve=None)
 
@@ -111,7 +111,7 @@ class TestServe(TestCase):
 
     def test_internal_error_on_invalid_field_name(self):
         self.assertRaises(
-            AttributeError, serve,
+            Http404, serve,
             "dummy_req", "auth_media", "Dummy", self.dm.pk, "dummy_field",
             do_check_auth=None, do_serve=None)
 

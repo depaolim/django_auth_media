@@ -23,8 +23,13 @@ def serve(
         do_check_auth=lambda f, request: f.can_view(request),
         do_serve=None):
     model = models.loading.get_model(app_label, object_name)
+    if not model:
+        raise Http404
     instance = get_object_or_404(model, pk=object_pk)
-    field_file = getattr(instance, field_name)
+    try:
+        field_file = getattr(instance, field_name)
+    except AttributeError:
+        raise Http404
     if not do_check_auth(field_file, request):
         raise Http404
     if not do_serve:
