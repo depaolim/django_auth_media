@@ -1,18 +1,6 @@
 from django.db import models
 
 
-def do_check_auth(request, instance, field_name):
-    field = getattr(instance, field_name)
-    if not request.user.is_superuser:
-        try:
-            can_view = getattr(instance, "can_view_" + field_name)
-        except AttributeError:
-            return
-        if not can_view(request):
-            return
-    return field.name
-
-
 class AuthFieldFile(models.fields.files.FieldFile):
 
     def _url(self):
@@ -20,6 +8,15 @@ class AuthFieldFile(models.fields.files.FieldFile):
         m = i._meta
         return s.url("/".join([m.app_label, m.object_name, str(i.pk), f.name]))
     url = property(_url)
+
+    def can_view(self, request):
+        if request.user.is_superuser:
+            return True
+        try:
+            f_can_view = getattr(self.instance, "can_view_" + self.field.name)
+        except AttributeError:
+            return False
+        return f_can_view(request)
 
 
 class AuthFileField(models.FileField):

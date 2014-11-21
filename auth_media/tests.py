@@ -10,7 +10,7 @@ from django.db import models
 from django.http import Http404, HttpRequest, HttpResponse
 from django.test import TestCase
 
-from .models import do_check_auth, AuthFileField
+from .models import AuthFileField
 from .views import serve, urlpatterns
 from .backends import xaccell
 
@@ -31,51 +31,6 @@ class Dummy(models.Model):
 
     def can_view_f_b(self, request):
         return request.user.has_perm(u'auth_media.view_file_b')
-
-
-class TestDoCheckAuth(TestCase):
-
-    def setUp(self):
-        self.u = User()
-        self.u.save()
-        self.req = HttpRequest()
-        self.req.user = self.u
-        self.da = Dummy()
-        self.da.save()
-
-    def test_on_guard_and_not_found(self):
-        self.assertFalse(do_check_auth(self.req, self.da, "f_a"))
-
-    def test_on_guard_and_serve(self):
-        self.da.f_a.save("NAME-A", ContentFile("CONTENT-A"))
-        self.da.guard = True
-        self.da.save()
-        self.assertRegexpMatches(
-            do_check_auth(self.req, self.da, "f_a"),
-            "xxx/NAME-A_?\d*")
-
-    def test_on_perm_and_not_found(self):
-        self.assertFalse(do_check_auth(self.req, self.da, "f_b"))
-
-    def test_on_perm_and_serve(self):
-        self.da.f_b.save("NAME-B", ContentFile("CONTENT-B"))
-        self.u.user_permissions.add(
-            Permission.objects.get(codename="view_file_b"))
-        self.u.save()
-        self.assertRegexpMatches(
-            do_check_auth(self.req, self.da, "f_b"),
-            "xxx/NAME-B_?\d*")
-
-    def test_on_nothing_and_not_found(self):
-        self.assertFalse(do_check_auth(self.req, self.da, "f_c"))
-
-    def test_on_nothing_and_serve(self):
-        self.da.f_c.save("NAME-C", ContentFile("CONTENT-C"))
-        self.u.is_superuser = True
-        self.u.save()
-        self.assertRegexpMatches(
-            do_check_auth(self.req, self.da, "f_c"),
-            "xxx/NAME-C_?\d*")
 
 
 class TestXAccell(TestCase):
@@ -144,24 +99,38 @@ class TestServe(TestCase):
         self.assertRaises(
             Http404, serve,
             "dummy_req", "auth_media", "Dummy", self.dm.pk, "f_a",
-            do_check_auth=lambda *args: self._dummy_method(None, *args),
+            do_check_auth=lambda *args: self._dummy_method(False, *args),
             do_serve=None)
-        self._assertCall("dummy_req", self.dm, "f_a")
+        self._assertCall(self.dm.f_a, "dummy_req")
         self._assertNoMoreCalls()
 
-    def test_on_authorized(self):
+    def test_on_authorized_with_content(self):
+        self.dm.f_a.save("SAMPLE_P", ContentFile("CONTENT-P"))
         response = serve(
             "dummy_req", "auth_media", "Dummy", self.dm.pk, "f_a",
-            do_check_auth=lambda *args: self._dummy_method("SAMPLE_P", *args),
+            do_check_auth=lambda *args: self._dummy_method(True, *args),
             do_serve=lambda *args: self._dummy_method(HttpResponse(), *args)
             )
-        self._assertCall("dummy_req", self.dm, "f_a")
-        self._assertCall("dummy_req", "SAMPLE_P")
+        self._assertCall(self.dm.f_a, "dummy_req")
+        req, path = self._calls.pop(0)
+        self.assertEquals(req, "dummy_req")
+        self.assertRegexpMatches(path, "^xxx/SAMPLE_P")
+        self._assertNoMoreCalls()
+        self.assertEquals(response.status_code, 200)
+
+    def test_on_authorized_without_content(self):
+        response = serve(
+            "dummy_req", "auth_media", "Dummy", self.dm.pk, "f_a",
+            do_check_auth=lambda *args: self._dummy_method(True, *args),
+            do_serve=lambda *args: self._dummy_method(HttpResponse(), *args)
+            )
+        self._assertCall(self.dm.f_a, "dummy_req")
+        self._assertCall("dummy_req", "")
         self._assertNoMoreCalls()
         self.assertEquals(response.status_code, 200)
 
 
-class TestAuthFileField(TestCase):
+class TestAuthFileFieldUrl(TestCase):
 
     def setUp(self):
         self.da = Dummy()
@@ -172,6 +141,45 @@ class TestAuthFileField(TestCase):
         self.assertEquals(
             self.da.f_a.url,
             "/media/auth_media/Dummy/{}/f_a".format(self.da.pk))
+
+
+class TestAuthFileFieldCanView(TestCase):
+
+    def setUp(self):
+        self.u = User()
+        self.u.save()
+        self.req = HttpRequest()
+        self.req.user = self.u
+        self.da = Dummy()
+        self.da.save()
+
+    def test_on_guard_and_not_found(self):
+        self.assertFalse(self.da.f_a.can_view(self.req))
+
+    def test_on_guard_and_serve(self):
+        self.da.f_a.save("NAME-A", ContentFile("CONTENT-A"))
+        self.da.guard = True
+        self.da.save()
+        self.assertTrue(self.da.f_a.can_view(self.req))
+
+    def test_on_perm_and_not_found(self):
+        self.assertFalse(self.da.f_a.can_view(self.req))
+
+    def test_on_perm_and_serve(self):
+        self.da.f_b.save("NAME-B", ContentFile("CONTENT-B"))
+        self.u.user_permissions.add(
+            Permission.objects.get(codename="view_file_b"))
+        self.u.save()
+        self.assertTrue(self.da.f_b.can_view(self.req))
+
+    def test_on_nothing_and_not_found(self):
+        self.assertFalse(self.da.f_a.can_view(self.req))
+
+    def test_on_nothing_and_serve(self):
+        self.da.f_c.save("NAME-C", ContentFile("CONTENT-C"))
+        self.u.is_superuser = True
+        self.u.save()
+        self.assertTrue(self.da.f_a.can_view(self.req))
 
 
 class TestPatterns(TestCase):
@@ -232,5 +240,5 @@ class TestAcceptance(TestCase):
         response = serve(
             self.req, "auth_media", "Dummy", self.da.pk, "f_a",
             do_serve=dummy_do_serve)
-        self.assertRegexpMatches(dummy_do_serve_calls.pop(), "xxx/NAME_?\d*")
+        self.assertRegexpMatches(dummy_do_serve_calls.pop(), "^xxx/NAME_")
         self.assertEquals(response.status_code, 200)

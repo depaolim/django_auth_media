@@ -8,8 +8,6 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.module_loading import import_by_path
 
-from .models import do_check_auth
-
 SERVERS = {}
 
 
@@ -25,14 +23,14 @@ do_serve = SERVERS["xaccell"]
 
 def serve(
         request, app_label, object_name, object_pk, field_name,
-        do_check_auth=do_check_auth, do_serve=do_serve):
+        do_check_auth=lambda field, request: field.can_view(request),
+        do_serve=do_serve):
     model = models.loading.get_model(app_label, object_name)
     instance = get_object_or_404(model, pk=object_pk)
     field = getattr(instance, field_name)
-    path = do_check_auth(request, instance, field_name)
-    if not path:
+    if not do_check_auth(field, request):
         raise Http404
-    return do_serve(request, path)
+    return do_serve(request, field.name)
 
 
 def urlpatterns(view=serve, **kwargs):
