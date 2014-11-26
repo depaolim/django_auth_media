@@ -94,8 +94,8 @@ MEDIA_SERVERS = {
     'default': {
         'ENGINE': "auth_media.backends.interim",
     },
-    'xaccell': {
-        'ENGINE': "auth_media.backends.xaccell",
+    'xaccel': {
+        'ENGINE': "auth_media.backends.xaccel",
         'REDIRECT': "/internal_media",
     },
     'secure': {

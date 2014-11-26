@@ -11,7 +11,7 @@ def interim(request, path):
     return serve(request, path, settings.MEDIA_ROOT)
 
 
-def xaccell(request, path, root=None, redirect=None):
+def xaccel(request, path, root=None, redirect=None):
     if not root:
         root = settings.MEDIA_ROOT
     fpath = os.path.join(root, path)

@@ -10,7 +10,7 @@ from django.db import models
 from django.http import Http404, HttpRequest, HttpResponse
 from django.test import TestCase
 
-from .backends import interim, secure_link, xaccell
+from .backends import interim, secure_link, xaccel
 from .models import AuthFileField
 from .views import serve, urlpatterns
 
@@ -66,9 +66,9 @@ class TestBackends(TestCase):
             ]
         self.assertEquals(r.serialize_headers(), "\r\n".join(expected_headers))
 
-    def test_xaccell(self):
+    def test_xaccel(self):
         req = HttpRequest()
-        r = xaccell(
+        r = xaccel(
             req, self.media_name, root=settings.MEDIA_ROOT, redirect="redir")
         self.assertEquals(r.status_code, 200)
         expected_headers = [
