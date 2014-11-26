@@ -17,30 +17,30 @@ Steps:
 
 2. Use auth\_media.AuthMediaField in place of models.FileField
 
-    from django.db import models
-    from auth_media import AuthFileField
+        from django.db import models
+        from auth_media import AuthFileField
 
-    class MediaModel(models.Model):
-        media_field = AuthFileField(
-            upload_to="media_model_folder",
-            permission="testapp.view_mediamodel")
+        class MediaModel(models.Model):
+            media_field = AuthFileField(
+                upload_to="media_model_folder",
+                permission="testapp.view_mediamodel")
 
 AuthFileField expects the following params:
 
-    * permission: string or callable
-        * string specify a permission full-name, or
-        * callable with the following parameters (model_instance, request)
-     * media_server: server name as defined in settings.MEDIA_SERVERS (see below)
+* permission: string or callable
+    * string specify a permission full-name, or
+    * callable with the following parameters (model\_instance, request)
+* media\_server: server name as defined in settings.MEDIA\_SERVERS (see below)
 
 3. Add urlpatterns in urls.py
 
-    import auth_media
-    urlpatterns += auth_media.urlpatterns()
+        import auth_media
+        urlpatterns += auth_media.urlpatterns()
 
 4. Add MEDIA\_URL  and MEDIA\_ROOT in settings.py
 
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = 'path_to_files_on_file_system'
+        MEDIA_URL = '/media/'
+        MEDIA_ROOT = 'path_to_files_on_file_system'
 
 5. Define MEDIA\_SERVERS in settings.py
 
@@ -71,14 +71,14 @@ If settings.MEDIA\_SERVERS is not defined, default is:
 
 Media servers battery-included in auth\_media package:
 
-    * "interim" slow, should be used only in debug (wrapper for on django.views.static.serve)
-    * "xaccel" based on X-Accel-Redirect header as managed by nginx (similar to Apache X-Sendfile)
-    * "secure\_link" based on secure\_link mechanism managed by nginx
+* "interim" slow, should be used only in debug (wrapper for on django.views.static.serve)
+* "xaccel" based on X-Accel-Redirect header as managed by nginx (similar to Apache X-Sendfile)
+* "secure\_link" based on secure\_link mechanism managed by nginx
 
 Engine function must define two positional arguments:
 
-    * request: the current request object
-    * path: as returned by property field.name
+* request: the current request object
+* path: as returned by property field.name
 
 Other key-value (ex. REDIRECT or SECRET) specified inside each media\_server definition, are used as "named parameters" automatically binded to engine function
 
