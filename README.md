@@ -137,7 +137,9 @@ To run tests:
 ## Thanks
 
 Riccardo Magliocchetti https://github.com/xrmx
+
     * code-reviews and many hints
 
 Manlio Perillo https://github.com/perillo
+
     * made me discover nginx secure\_links
