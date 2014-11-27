@@ -60,7 +60,7 @@ Steps:
         }
 
 
-## Media-Servers already included in auth\_media package:
+## Media-Servers included in auth\_media package:
 
 * "interim" slow, should be used only in debug (wrapper for on django.views.static.serve)
 * "xaccel" based on X-Accel-Redirect header as managed by nginx (similar to Apache X-Sendfile)
