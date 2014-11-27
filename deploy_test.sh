@@ -9,7 +9,7 @@
 python setup.py sdist
 deactivate
 mkvirtualenv test_auth_media
-pip install ~/Downloads/Django-1.6.7-py2.py3-none-any.whl
+pip install ~/Downloads/Django-1.6.8-py2.py3-none-any.whl
 pip install git+https://github.com/depaolim/django_auth_media.git
 pip freeze
 cp -r ../django_auth_media/testproj/ .
