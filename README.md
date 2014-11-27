@@ -59,22 +59,23 @@ Steps:
             },
         }
 
-    Media-Servers included in auth\_media package:
 
-    * "interim" slow, should be used only in debug (wrapper for on django.views.static.serve)
-    * "xaccel" based on X-Accel-Redirect header as managed by nginx (similar to Apache X-Sendfile)
-    * "secure\_link" based on secure\_link mechanism managed by nginx
+## Media-Servers already included in auth\_media package:
 
-    Engine function must define two positional arguments:
+* "interim" slow, should be used only in debug (wrapper for on django.views.static.serve)
+* "xaccel" based on X-Accel-Redirect header as managed by nginx (similar to Apache X-Sendfile)
+* "secure\_link" based on secure\_link mechanism managed by nginx
 
-    * request: the current request object
-    * path: as returned by property field.name
+Engine function must define two positional arguments:
 
-    Other key-value (ex. REDIRECT or SECRET) specified inside each media\_server definition, are used as "named parameters" automatically binded to engine function
+* request: the current request object
+* path: as returned by property field.name
 
-    It is easy to define new media servers and plug them in auth\_media
+Other key-value (ex. REDIRECT or SECRET) specified inside each media\_server definition, are used as "named parameters" automatically binded to engine function
 
-    If you you define new general-purpose media-servers please let me know and I will be happy to integrate them in auth\_media core
+It is easy to define new media servers and plug them in auth\_media
+
+If you you define new general-purpose media-servers please let me know and I will be happy to integrate them in auth\_media core
 
 
 ## "xaccel" configuration
