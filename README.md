@@ -23,12 +23,12 @@ Steps:
                 upload_to="media_model_folder",
                 permission="testapp.view_mediamodel")
 
-AuthFileField expects the following params:
+    AuthFileField expects the following params:
 
-* permission: string or callable
-    * string specify a permission full-name, or
-    * callable with the following parameters (model\_instance, request)
-* media\_server: server name as defined in settings.MEDIA\_SERVERS (see below)
+    * permission: string or callable
+        * string specify a permission full-name, or
+        * callable with the following parameters (model\_instance, request)
+    * media\_server: server name as defined in settings.MEDIA\_SERVERS (see below)
 
 2. Add urlpatterns in urls.py
 
@@ -40,87 +40,88 @@ AuthFileField expects the following params:
         MEDIA_URL = '/media/'
         MEDIA_ROOT = 'path_to_files_on_file_system'
 
-4. Define MEDIA\_SERVERS in settings.py
+4. Add MEDIA\_SERVERS in settings.py
 
-Example:
+    Example:
 
-    MEDIA_SERVERS = {
-        'default': {
-            'ENGINE': "auth_media.backends.interim",
-        },
-        'xaccel': {
-            'ENGINE': "auth_media.backends.xaccel",
-            'REDIRECT': "/internal_media",
-        },
-        'secure': {
-            'ENGINE': "auth_media.backends.secure_link",
-            'SECRET': "SUpeRSecREt",
-            'REDIRECT': "/secure_media",
-        },
+        MEDIA_SERVERS = {
+            'default': {
+                'ENGINE': "auth_media.backends.interim",
+            },
+            'xaccel': {
+                'ENGINE': "auth_media.backends.xaccel",
+                'REDIRECT': "/internal_media",
+            },
+            'secure': {
+                'ENGINE': "auth_media.backends.secure_link",
+                'SECRET': "SUpeRSecREt",
+                'REDIRECT': "/secure_media",
+            },
+        }
+
+    Media-Servers included in auth\_media package:
+
+    * "interim" slow, should be used only in debug (wrapper for on django.views.static.serve)
+    * "xaccel" based on X-Accel-Redirect header as managed by nginx (similar to Apache X-Sendfile)
+    * "secure\_link" based on secure\_link mechanism managed by nginx
+
+    Engine function must define two positional arguments:
+
+    * request: the current request object
+    * path: as returned by property field.name
+
+    Other key-value (ex. REDIRECT or SECRET) specified inside each media\_server definition, are used as "named parameters" automatically binded to engine function
+
+    It is easy to define new media servers and plug them in auth\_media
+
+    If you you define new general-purpose media-servers please let me know and I will be happy to integrate them in auth\_media core
+
+
+## "xaccel" configuration
+
+Use the same path used in "internal location" in nginx config. Example:
+
+settings.py:
+
+    'xaccel': {
+        'ENGINE': "auth_media.backends.xaccel",
+        'REDIRECT': "/internal_media",
+    },
+
+nginx.conf:
+
+    location /internal_media {
+        internal;
+        alias /path_to_media_files;
     }
 
-Media-Servers included in auth\_media package:
+Reference:
+    http://wiki.nginx.org/X-accel
 
-* "interim" slow, should be used only in debug (wrapper for on django.views.static.serve)
-* "xaccel" based on X-Accel-Redirect header as managed by nginx (similar to Apache X-Sendfile)
-* "secure\_link" based on secure\_link mechanism managed by nginx
+## "secure\_link" configuration
 
-Engine function must define two positional arguments:
+Use the same path used in "rewrite location" in nginx config. Example:
 
-* request: the current request object
-* path: as returned by property field.name
+    'secure': {
+        'ENGINE': "auth_media.backends.secure_link",
+        'SECRET': "SUpeRSecREt",
+        'REDIRECT': "/secure_media",
+    },
 
-Other key-value (ex. REDIRECT or SECRET) specified inside each media\_server definition, are used as "named parameters" automatically binded to engine function
+nginx.conf:
 
-It is easy to define new media servers and plug them in auth\_media
+    location /secure_media/ {
+        secure_link_secret SUpeRSecREt;
 
-If you you define new general-purpose media-servers please let me know and I will be happy to integrate them in auth\_media core
-
-5. "xaccel" configuration
-
-    Use the same path used in "internal location" in nginx config. Example:
-
-    settings.py:
-
-        'xaccel': {
-            'ENGINE': "auth_media.backends.xaccel",
-            'REDIRECT': "/internal_media",
-        },
-
-    nginx.conf:
-
-        location /internal_media {
-            internal;
-            alias /path_to_media_files;
+        if ($secure_link = "") {
+            return 403;
         }
 
-Reference:
-http://wiki.nginx.org/X-accel
-
-6. "secure\_link" configuration
-
-    Use the same path used in "rewrite location" in nginx config. Example:
-
-        'secure': {
-            'ENGINE': "auth_media.backends.secure_link",
-            'SECRET': "SUpeRSecREt",
-            'REDIRECT': "/secure_media",
-        },
-
-    nginx.conf:
-
-        location /secure_media/ {
-            secure_link_secret SUpeRSecREt;
-
-            if ($secure_link = "") {
-                return 403;
-            }
-
-            rewrite ^ /path_to_media_files/$secure_link;
-        }
+        rewrite ^ /path_to_media_files/$secure_link;
+    }
 
 Reference:
-http://nginx.org/en/docs/http/ngx\_http\_secure\_link\_module.html
+    http://nginx.org/en/docs/http/ngx\_http\_secure\_link\_module.html
 
 
 ## Test
