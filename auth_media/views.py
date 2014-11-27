@@ -8,6 +8,8 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.module_loading import import_by_path
 
+from .models import AuthFieldFile
+
 SERVERS = {}
 
 
@@ -39,11 +41,7 @@ def serve(
 
 
 def urlpatterns(view=serve, **kwargs):
-    prefix = re.escape(settings.MEDIA_URL.lstrip('/'))
-    media_id = "/".join([
-        r'(?P<app_label>[^/]+)',
-        r'(?P<object_name>[^/]+)',
-        r'(?P<object_pk>[^/]+)',
-        r'(?P<field_name>[^/]+)', ])
-    pattern = "^{}{}$". format(prefix, media_id)
+    pattern = "^{}{}$". format(
+        re.escape(settings.MEDIA_URL.lstrip('/')),
+        AuthFieldFile.MEDIA_ID)
     return patterns('', url(pattern, view, name='auth_media', kwargs=kwargs),)

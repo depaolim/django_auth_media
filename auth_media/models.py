@@ -3,6 +3,12 @@ from django.db import models
 
 class AuthFieldFile(models.fields.files.FieldFile):
 
+    MEDIA_ID = "/".join([
+        r'(?P<app_label>[^/]+)',
+        r'(?P<object_name>[^/]+)',
+        r'(?P<object_pk>[^/]+)',
+        r'(?P<field_name>[^/]+)', ])
+
     def _url(self):
         s, i, f = self.storage, self.instance, self.field
         m = i._meta

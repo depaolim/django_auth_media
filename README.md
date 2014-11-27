@@ -61,15 +61,7 @@ Example:
         },
     }
 
-If settings.MEDIA\_SERVERS is not defined, default is:
-
-    MEDIA_SERVERS = {
-        'default': {
-            'ENGINE': "auth_media.backends.interim",
-        },
-    }
-
-Media servers battery-included in auth\_media package:
+Media-Servers included in auth\_media package:
 
 * "interim" slow, should be used only in debug (wrapper for on django.views.static.serve)
 * "xaccel" based on X-Accel-Redirect header as managed by nginx (similar to Apache X-Sendfile)
@@ -104,6 +96,9 @@ If you you define new general-purpose media-servers please let me know and I wil
             alias /path_to_media_files;
         }
 
+Reference:
+http://wiki.nginx.org/X-accel
+
 6. "secure\_link" configuration
 
     Use the same path used in "rewrite location" in nginx config. Example:
@@ -125,6 +120,9 @@ If you you define new general-purpose media-servers please let me know and I wil
 
             rewrite ^ /path_to_media_files/$secure_link;
         }
+
+Reference:
+http://nginx.org/en/docs/http/ngx\_http\_secure\_link\_module.html
 
 
 ## Test
