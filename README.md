@@ -2,20 +2,18 @@
 
 Serving media based on authorization checks
 
-Download the repo:
-
-    git clone https://github.com/depaolim/django_auth_media.git
-
 The app is tested on Django 1.6.7 and has no dependency from other packages (apart from django itself)
+
+## Setup
+
+    pip install git+https://github.com/depaolim/django_auth_media.git
 
 
 ## Usage
 
 Steps:
 
-1. Add the folder django\_auth\_media to your PYTHONPATH
-
-2. Use auth\_media.AuthMediaField in place of models.FileField
+1. Use auth\_media.AuthMediaField in place of models.FileField
 
         from django.db import models
         from auth_media import AuthFileField
@@ -32,17 +30,17 @@ AuthFileField expects the following params:
     * callable with the following parameters (model\_instance, request)
 * media\_server: server name as defined in settings.MEDIA\_SERVERS (see below)
 
-3. Add urlpatterns in urls.py
+2. Add urlpatterns in urls.py
 
         import auth_media
         urlpatterns += auth_media.urlpatterns()
 
-4. Add MEDIA\_URL  and MEDIA\_ROOT in settings.py
+3. Add MEDIA\_URL  and MEDIA\_ROOT in settings.py
 
         MEDIA_URL = '/media/'
         MEDIA_ROOT = 'path_to_files_on_file_system'
 
-5. Define MEDIA\_SERVERS in settings.py
+4. Define MEDIA\_SERVERS in settings.py
 
 Example:
 
