@@ -132,3 +132,12 @@ To run tests:
     cd testproj
     pip install -r requirements.txt
     python manage.py test testapp auth_media
+
+
+## Thanks
+
+Riccardo Magliocchetti https://github.com/xrmx
+    * code-reviews and many hints
+
+Manlio Perillo https://github.com/perillo
+    * made me discover nginx secure\_links
