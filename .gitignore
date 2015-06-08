@@ -8,3 +8,7 @@ __pycache__/
 
 # Media files
 testproj/media_root/*
+
+# Distribution files
+dist/
+django_auth_media.egg-info/
