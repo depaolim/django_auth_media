@@ -18,16 +18,12 @@ setup(
     author="Marco De Paoli",
     author_email="depaolim@gmail.com",
     name='django-auth-media',
-    version='0.0.1',
+    version='0.0.2',
     description='Django media files: check authorization and serve',
     url='https://github.com/depaolim/django_auth_media',
     license='BSD License',
     platforms=['OS Independent'],
     classifiers=CLASSIFIERS,
-    install_requires=[
-        'setuptools',
-        'Django==1.6.8',
-    ],
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False
