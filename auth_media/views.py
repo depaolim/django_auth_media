@@ -3,10 +3,22 @@ import re
 
 from django.conf import settings
 from django.conf.urls import patterns, url
-from django.db import models
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from django.utils.module_loading import import_by_path
+
+try:
+    from django.apps import apps
+    get_model = apps.get_model
+except ImportError:
+    # Django 1.6.11
+    from django.db.models.loading import get_model
+
+try:
+    from django.utils.module_loading import import_string
+except ImportError:
+    # Django 1.6.11
+    from django.utils.module_loading import import_by_path
+    import_string = import_by_path
 
 from .models import AuthFieldFile
 
@@ -16,7 +28,7 @@ SERVERS = {}
 for name, props in settings.MEDIA_SERVERS.items():
     engine_path = props.pop('ENGINE')
     kwargs = {name.lower(): value for name, value in props.items()}
-    _do_serve = import_by_path(engine_path)
+    _do_serve = import_string(engine_path)
     SERVERS[name] = functools.partial(_do_serve, **kwargs)
 
 
@@ -24,8 +36,11 @@ def serve(
         request, app_label, object_name, object_pk, field_name,
         do_check_auth=lambda f, request: f.can_view(request),
         do_serve=None):
-    model = models.loading.get_model(app_label, object_name)
-    if not model:
+    try:
+        model = get_model(app_label, object_name)
+        if not model:  # Django 1.6.11
+            raise Http404
+    except LookupError:
         raise Http404
     instance = get_object_or_404(model, pk=object_pk)
     try:
