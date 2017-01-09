@@ -9,7 +9,7 @@
 python setup.py sdist
 deactivate
 mkvirtualenv test_auth_media
-pip install ~/Downloads/Django-1.6.8-py2.py3-none-any.whl
+pip install django==1.8.13
 pip install git+https://github.com/depaolim/django_auth_media.git
 pip freeze
 cp -r ../django_auth_media/testproj/ .
@@ -18,8 +18,8 @@ cd testproj/
 cd ..
 pip uninstall django_auth_media -y
 pip freeze
-cp ../django_auth_media/dist/django-auth-media-0.0.1.tar.gz .
-pip install django-auth-media-0.0.1.tar.gz
+cp ../django_auth_media/dist/django-auth-media-0.0.4.tar.gz .
+pip install django-auth-media-0.0.4.tar.gz
 pip freeze
 cd testproj/
 ./manage.py test testapp auth_media

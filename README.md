@@ -2,7 +2,7 @@
 
 Serving media based on authorization checks
 
-The app is tested on Django 1.6.8 to 1.8.2 and has no dependency from other packages
+The app is tested on Django 1.6.8 to 1.10.5 and has no dependency from other packages
 
 
 ## Setup

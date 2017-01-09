@@ -6,6 +6,9 @@ __pycache__/
 *.swp
 .ropeproject/*
 
+# PyCharm support files
+.idea/
+
 # Media files
 testproj/media_root/*
 

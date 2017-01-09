@@ -2,7 +2,7 @@ import functools
 import re
 
 from django.conf import settings
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 
@@ -59,4 +59,4 @@ def urlpatterns(view=serve, **kwargs):
     pattern = "^{}{}$". format(
         re.escape(settings.MEDIA_URL.lstrip('/')),
         AuthFieldFile.MEDIA_ID)
-    return patterns('', url(pattern, view, name='auth_media', kwargs=kwargs),)
+    return [url(pattern, view, name='auth_media', kwargs=kwargs),]
