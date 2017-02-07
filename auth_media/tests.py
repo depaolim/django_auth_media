@@ -8,7 +8,7 @@ from django.core.files.storage import default_storage
 from django.core.urlresolvers import resolve, reverse
 from django.db import models
 from django.http import Http404, HttpRequest, HttpResponse
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from .backends import interim, secure_link, xaccel
 from .models import AuthFileField
@@ -201,9 +201,8 @@ class TestAuthFileFieldCanView(TestCase):
         self.assertTrue(self.da.f_a.can_view(self.req))
 
 
+@override_settings(ROOT_URLCONF=urlpatterns())
 class TestPatterns(TestCase):
-    urls = urlpatterns()
-
     def test_reverse(self):
         url = reverse('auth_media', kwargs={
             'app_label': 'auth_media', 'object_name': 'Dummy',
@@ -259,5 +258,5 @@ class TestAcceptance(TestCase):
         response = serve(
             self.req, "auth_media", "Dummy", self.da.pk, "f_a",
             do_serve=dummy_do_serve)
-        self.assertRegexpMatches(dummy_do_serve_calls.pop(), "^xxx/NAME_")
+        self.assertRegexpMatches(dummy_do_serve_calls.pop(), "^xxx/NAME")
         self.assertEquals(response.status_code, 200)
