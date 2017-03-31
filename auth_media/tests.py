@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import absolute_import
+
 import StringIO
 import zipfile
 
@@ -37,10 +41,9 @@ class TestBackends(TestCase):
     def setUp(self):
         stream = StringIO.StringIO()
         with zipfile.ZipFile(stream, "w") as zf:
-            zf.writestr("sample.csv", "csv,file,content")
-        self.media_name = default_storage.save(
-            "my_folder/my_name.zip",
-            ContentFile(stream.getvalue()))
+            zf.writestr("sample.csv", r"csv,file,content")
+        self.c = ContentFile(stream.getvalue())
+        self.media_name = default_storage.save("my_folder/my_name.zip", self.c)
 
     def tearDown(self):
         default_storage.delete(self.media_name)
@@ -75,6 +78,19 @@ class TestBackends(TestCase):
             "X-Accel-Redirect: redir/my_folder/my_name.zip",
             "Content-Type: application/zip",
             "Content-Disposition: attachment; filename=my_name.zip"
+            ]
+        self.assertEquals(r.serialize_headers(), "\r\n".join(expected_headers))
+
+    def test_xaccel_unicode(self):
+        media_name = default_storage.save(u"my_folder/my_nameè.zip", self.c)
+        req = HttpRequest()
+        r = xaccel(
+            req, media_name, root=settings.MEDIA_ROOT, redirect="redir")
+        self.assertEquals(r.status_code, 200)
+        expected_headers = [
+            "X-Accel-Redirect: redir/my_folder/my_name\xe8.zip",
+            "Content-Type: application/zip",
+            "Content-Disposition: attachment; filename=my_name\xe8.zip"
             ]
         self.assertEquals(r.serialize_headers(), "\r\n".join(expected_headers))
 
