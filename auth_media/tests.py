@@ -12,7 +12,7 @@ from django.core.files.storage import default_storage
 from django.core.urlresolvers import resolve, reverse
 from django.db import models
 from django.http import Http404, HttpRequest, HttpResponse
-from django.test import TestCase, override_settings
+from django.test import TestCase, client, override_settings
 
 from .backends import interim, secure_link, xaccel
 from .models import AuthFileField
@@ -28,6 +28,7 @@ class Dummy(models.Model):
     f_b = AuthFileField(
         upload_to="xxx", permission=u'auth_media.view_file_b')
     f_c = AuthFileField(upload_to="xxx")
+    f_d = AuthFileField(upload_to="xxx", media_server="dummy")
     guard = models.BooleanField(default=False)
 
     class Meta:
@@ -44,9 +45,11 @@ class TestBackends(TestCase):
             zf.writestr("sample.csv", r"csv,file,content")
         self.c = ContentFile(stream.getvalue())
         self.media_name = default_storage.save("my_folder/my_name.zip", self.c)
+        self.media_name_unicode = default_storage.save(u"my_folder/my_nameè.zip", self.c)
 
     def tearDown(self):
         default_storage.delete(self.media_name)
+        default_storage.delete(self.media_name_unicode)
 
     def test_interim(self):
         req = HttpRequest()
@@ -82,10 +85,9 @@ class TestBackends(TestCase):
         self.assertEquals(r.serialize_headers(), "\r\n".join(expected_headers))
 
     def test_xaccel_unicode(self):
-        media_name = default_storage.save(u"my_folder/my_nameè.zip", self.c)
         req = HttpRequest()
         r = xaccel(
-            req, media_name, root=settings.MEDIA_ROOT, redirect="redir")
+            req, self.media_name_unicode, root=settings.MEDIA_ROOT, redirect="redir")
         self.assertEquals(r.status_code, 200)
         expected_headers = [
             "X-Accel-Redirect: redir/my_folder/my_name\xe8.zip",
@@ -147,9 +149,8 @@ class TestServe(TestCase):
             do_serve=lambda *args: self._dummy_method(HttpResponse(), *args)
             )
         self._assertCall(self.dm.f_a, "dummy_req")
-        req, path = self._calls.pop(0)
-        self.assertEquals(req, "dummy_req")
-        self.assertRegexpMatches(path, "^xxx/SAMPLE_P")
+        req, = self._calls.pop(0)
+        self.assertEqual(req, "dummy_req")
         self._assertNoMoreCalls()
         self.assertEquals(response.status_code, 200)
 
@@ -160,22 +161,53 @@ class TestServe(TestCase):
             do_serve=lambda *args: self._dummy_method(HttpResponse(), *args)
             )
         self._assertCall(self.dm.f_a, "dummy_req")
-        self._assertCall("dummy_req", "")
+        self._assertCall("dummy_req")
         self._assertNoMoreCalls()
         self.assertEquals(response.status_code, 200)
 
 
+def dummy_engine(request, name):
+    response = HttpResponse(content_type="dummy")
+    response['My-Name'] = name
+    return response
+
+
+@override_settings(MEDIA_SERVERS={
+    'default': {'ENGINE': "auth_media.backends.interim"},
+    'dummy': {'ENGINE': "auth_media.tests.dummy_engine"}
+})
 class TestAuthFileFieldUrl(TestCase):
 
     def setUp(self):
         self.da = Dummy()
         self.da.save()
+        self.da.f_a.save("NAME", ContentFile("CONTENT"))
+        self.da.f_d.save("NAME-D", ContentFile("CONTENT-D"))
+
+    def tearDown(self):
+        default_storage.delete("xxx/NAME")
+        default_storage.delete("xxx/NAME-D")
 
     def test_url(self):
-        self.da.f_a.save("NAME", ContentFile("CONTENT"))
         self.assertEquals(
             self.da.f_a.url,
             "/media/auth_media/Dummy/{}/f_a".format(self.da.pk))
+
+    def test_interim_get_view(self):
+        rf = client.RequestFactory()
+        mock_request = rf.get('/')
+        v = self.da.f_a.get_view()
+        r = v(mock_request)
+        self.assertEquals(r.status_code, 200)
+        self.assertEquals(b''.join(r.streaming_content), b'CONTENT')
+
+    def test_dummy_get_view(self):
+        rf = client.RequestFactory()
+        mock_request = rf.get('/')
+        v = self.da.f_d.get_view()
+        r = v(mock_request)
+        self.assertEquals(r.status_code, 200)
+        self.assertEquals(r.serialize_headers(), b'Content-Type: dummy\r\nMy-Name: xxx/NAME-D')
 
 
 class TestAuthFileFieldCanView(TestCase):
@@ -264,8 +296,8 @@ class TestAcceptance(TestCase):
     def test_authorized(self):
         dummy_do_serve_calls = []
 
-        def dummy_do_serve(req, path):
-            dummy_do_serve_calls.append(path)
+        def dummy_do_serve(req):
+            dummy_do_serve_calls.append(req)
             return HttpResponse()
 
         self.da.f_a.save("NAME", ContentFile("CONTENT"))
@@ -274,5 +306,5 @@ class TestAcceptance(TestCase):
         response = serve(
             self.req, "auth_media", "Dummy", self.da.pk, "f_a",
             do_serve=dummy_do_serve)
-        self.assertRegexpMatches(dummy_do_serve_calls.pop(), "^xxx/NAME")
+        self.assertEqual(dummy_do_serve_calls.pop(), self.req)
         self.assertEquals(response.status_code, 200)

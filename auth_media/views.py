@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 from __future__ import print_function
 from __future__ import absolute_import
 
-import functools
 import re
 
 from django.conf import settings
@@ -18,23 +17,7 @@ except ImportError:
     # Django 1.6.11
     from django.db.models.loading import get_model
 
-try:
-    from django.utils.module_loading import import_string
-except ImportError:
-    # Django 1.6.11
-    from django.utils.module_loading import import_by_path
-    import_string = import_by_path
-
 from .models import AuthFieldFile
-
-SERVERS = {}
-
-
-for name, props in settings.MEDIA_SERVERS.items():
-    engine_path = props.pop('ENGINE')
-    kwargs = {name.lower(): value for name, value in props.items()}
-    _do_serve = import_string(engine_path)
-    SERVERS[name] = functools.partial(_do_serve, **kwargs)
 
 
 def serve(
@@ -55,9 +38,8 @@ def serve(
     if not do_check_auth(field_file, request):
         raise Http404
     if not do_serve:
-        ms = field_file.field.media_server
-        do_serve = SERVERS[ms if ms else "default"]
-    return do_serve(request, field_file.name)
+        do_serve = field_file.get_view()
+    return do_serve(request)
 
 
 def urlpatterns(view=serve, **kwargs):

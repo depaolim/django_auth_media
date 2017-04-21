@@ -3,7 +3,17 @@ from __future__ import unicode_literals
 from __future__ import print_function
 from __future__ import absolute_import
 
+import functools
+
 from django.db import models
+from django.conf import settings
+
+try:
+    from django.utils.module_loading import import_string
+except ImportError:
+    # Django 1.6.11
+    from django.utils.module_loading import import_by_path
+    import_string = import_by_path
 
 
 class AuthFieldFile(models.fields.files.FieldFile):
@@ -29,6 +39,19 @@ class AuthFieldFile(models.fields.files.FieldFile):
         if callable(p):
             return p(self.instance, request)
         return request.user.has_perm(p)
+
+    def get_view(self):
+        ms = getattr(self.field, "media_server", None)
+        servers = {}
+        for name, props in settings.MEDIA_SERVERS.items():
+            props = dict(props)
+            engine_path = props.pop('ENGINE')
+            kwargs = {name.lower(): value for name, value in props.items()}
+            _do_serve = import_string(engine_path)
+            servers[name] = functools.partial(_do_serve, **kwargs)
+
+        view = servers[ms if ms else "default"]
+        return lambda request: view(request, self.name)
 
 
 class AuthFileField(models.FileField):
