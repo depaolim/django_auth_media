@@ -40,8 +40,9 @@ class AuthFieldFile(models.fields.files.FieldFile):
             return p(self.instance, request)
         return request.user.has_perm(p)
 
-    def get_view(self):
-        ms = getattr(self.field, "media_server", None)
+    def get_view(self, media_server=None):
+        if not media_server:
+            media_server = getattr(self.field, "media_server", None)
         servers = {}
         for name, props in settings.MEDIA_SERVERS.items():
             props = dict(props)
@@ -50,7 +51,7 @@ class AuthFieldFile(models.fields.files.FieldFile):
             _do_serve = import_string(engine_path)
             servers[name] = functools.partial(_do_serve, **kwargs)
 
-        view = servers[ms if ms else "default"]
+        view = servers[media_server if media_server else "default"]
         return lambda request: view(request, self.name)
 
 

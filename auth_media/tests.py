@@ -209,6 +209,14 @@ class TestAuthFileFieldUrl(TestCase):
         self.assertEquals(r.status_code, 200)
         self.assertEquals(r.serialize_headers(), b'Content-Type: dummy\r\nMy-Name: xxx/NAME-D')
 
+    def test_get_view_by_name(self):
+        rf = client.RequestFactory()
+        mock_request = rf.get('/')
+        v = self.da.f_a.get_view("dummy")
+        r = v(mock_request)
+        self.assertEquals(r.status_code, 200)
+        self.assertEquals(r.serialize_headers(), b'Content-Type: dummy\r\nMy-Name: xxx/NAME')
+
 
 class TestAuthFileFieldCanView(TestCase):
 
