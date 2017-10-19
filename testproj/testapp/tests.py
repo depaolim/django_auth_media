@@ -58,17 +58,11 @@ class TestAcceptance(TestCase):
         r = self.client.get(self.expected_xaccel_url)
         self.assertEquals(r.status_code, 200)
         self.assertFalse(r.content)
-        expected_headers = [
-            (
-                r'X-Accel-Redirect:'
-                ' /internal_media/xaccel/fname(_\w+)?.xls'),
-            'X-Frame-Options: SAMEORIGIN',
-            'Content-Type: application/vnd.ms-excel',
-            r'Content-Disposition: attachment; filename=fname(_\w+)?.xls',
-            'Vary: Cookie',
-            ]
-        self.assertRegexpMatches(
-            r.serialize_headers(), "\r\n".join(expected_headers))
+        self.assertRegexpMatches(r['Content-Disposition'], r'attachment; filename=fname(_\w+)?.xls')
+        self.assertRegexpMatches(r['Content-Type'], r'application/vnd.ms-excel')
+        # self.assertRegexpMatches(r['Content-Length'], '0')  # only in django 1.11.6
+        self.assertRegexpMatches(r['X-Accel-Redirect'], '/internal_media/xaccel/fname(_\w+)?.xls')
+        self.assertRegexpMatches(r['X-Frame-Options'], 'SAMEORIGIN')
 
     def test_download_secure(self):
         self.u.is_superuser = True
