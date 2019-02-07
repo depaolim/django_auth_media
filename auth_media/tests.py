@@ -2,7 +2,6 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
-import StringIO
 import zipfile
 
 from django.conf import settings
@@ -13,6 +12,7 @@ from django.core.urlresolvers import resolve, reverse
 from django.db import models
 from django.http import Http404, HttpRequest, HttpResponse
 from django.test import TestCase, client, override_settings
+from django.utils.six import BytesIO
 
 from .backends import interim, secure_link, xaccel
 from .models import AuthFileField
@@ -40,7 +40,7 @@ class Dummy(models.Model):
 class TestBackends(TestCase):
 
     def setUp(self):
-        stream = StringIO.StringIO()
+        stream = BytesIO()
         with zipfile.ZipFile(stream, "w") as zf:
             zf.writestr("sample.csv", r"csv,file,content")
         self.c = ContentFile(stream.getvalue())
@@ -63,38 +63,26 @@ class TestBackends(TestCase):
             req, self.media_name,
             secret="SuP3rS3cr3t", redirect="media_secure")
         self.assertEquals(r.status_code, 302)
-        expected_headers = [
-            "Content-Type: text/html; charset=utf-8",
-            (
-                "Location: "
-                "media_secure/1f4cf3b8507c40387c8e95a6d5ea1cc6/"
-                "my_folder/my_name.zip"),
-            ]
-        self.assertEquals(r.serialize_headers(), "\r\n".join(expected_headers))
+        self.assertIn(r['Content-Type'], 'text/html; charset=utf-8')
+        self.assertIn(r['Location'], 'media_secure/1f4cf3b8507c40387c8e95a6d5ea1cc6/my_folder/my_name.zip')
 
     def test_xaccel(self):
         req = HttpRequest()
         r = xaccel(
             req, self.media_name, root=settings.MEDIA_ROOT, redirect="redir")
         self.assertEquals(r.status_code, 200)
-        expected_headers = [
-            "X-Accel-Redirect: redir/my_folder/my_name.zip",
-            "Content-Type: application/zip",
-            "Content-Disposition: attachment; filename=my_name.zip"
-            ]
-        self.assertEquals(r.serialize_headers(), "\r\n".join(expected_headers))
+        self.assertIn(r['X-Accel-Redirect'], 'redir/my_folder/my_name.zip')
+        self.assertIn(r['Content-Type'], 'application/zip')
+        self.assertIn(r['Content-Disposition'], 'attachment; filename=my_name.zip')
 
     def test_xaccel_unicode(self):
         req = HttpRequest()
         r = xaccel(
             req, self.media_name_unicode, root=settings.MEDIA_ROOT, redirect="redir")
         self.assertEquals(r.status_code, 200)
-        expected_headers = [
-            "X-Accel-Redirect: redir/my_folder/my_name\xe8.zip",
-            "Content-Type: application/zip",
-            "Content-Disposition: attachment; filename=my_name\xe8.zip"
-            ]
-        self.assertEquals(r.serialize_headers(), "\r\n".join(expected_headers))
+        self.assertIn(r['X-Accel-Redirect'], 'redir/my_folder/my_name\xe8.zip')
+        self.assertIn(r['Content-Type'], 'application/zip')
+        self.assertIn(r['Content-Disposition'], 'attachment; filename=my_name\xe8.zip')
 
 
 class TestServe(TestCase):
@@ -272,7 +260,7 @@ class TestPatterns(TestCase):
             'object_name': 'Dummy', 'field_name': 'f_a',
             'object_pk': '1', 'app_label': 'auth_media'}
         )
-        self.assertEqual(resolver.func.func_name, 'serve')
+        self.assertEqual(resolver.func.__name__, 'serve')
 
 
 class TestAcceptance(TestCase):

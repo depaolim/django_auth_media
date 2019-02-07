@@ -29,6 +29,8 @@ def xaccel(request, path, root=None, redirect=None):
 
 
 def secure_link(request, path, secret, redirect):
-    hash = hashlib.md5("{}{}".format(path, secret)).hexdigest()
-    response = HttpResponseRedirect(os.path.join(redirect, hash, path))
+    m = hashlib.md5()
+    m.update(path.encode("utf8"))
+    m.update(secret.encode("utf8"))
+    response = HttpResponseRedirect(os.path.join(redirect, m.hexdigest(), path))
     return response

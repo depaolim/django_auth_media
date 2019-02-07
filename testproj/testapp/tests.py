@@ -50,7 +50,7 @@ class TestAcceptance(TestCase):
         self.u.save()
         r = self.client.get(self.expected_interim_url)
         self.assertEquals(r.status_code, 200)
-        self.assertEquals(b''.join(r.streaming_content), "FILE-CONTENT")
+        self.assertEquals(b''.join(r.streaming_content), b"FILE-CONTENT")
 
     def test_download_xaccel(self):
         self.u.is_superuser = True
