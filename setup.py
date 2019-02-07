@@ -18,7 +18,7 @@ setup(
     author="Marco De Paoli",
     author_email="depaolim@gmail.com",
     name='django-auth-media',
-    version='0.0.8',
+    version='0.0.9',
     description='Django media files: check authorization and serve',
     url='https://github.com/depaolim/django_auth_media',
     license='BSD License',
