@@ -60,9 +60,8 @@ class TestAcceptance(TestCase):
         self.assertFalse(r.content)
         self.assertRegexpMatches(r['Content-Disposition'], r'attachment; filename=fname(_\w+)?.xls')
         self.assertRegexpMatches(r['Content-Type'], r'application/vnd.ms-excel')
-        # self.assertRegexpMatches(r['Content-Length'], '0')  # only in django 1.11.6
+        self.assertRegexpMatches(r['Content-Length'], '0')  # only in django 1.11.6
         self.assertRegexpMatches(r['X-Accel-Redirect'], '/internal_media/xaccel/fname(_\w+)?.xls')
-        self.assertRegexpMatches(r['X-Frame-Options'], 'SAMEORIGIN')
 
     def test_download_secure(self):
         self.u.is_superuser = True

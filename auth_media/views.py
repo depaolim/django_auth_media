@@ -46,4 +46,4 @@ def urlpatterns(view=serve, **kwargs):
     pattern = "^{}{}$". format(
         re.escape(settings.MEDIA_URL.lstrip('/')),
         AuthFieldFile.MEDIA_ID)
-    return [url(pattern, view, name='auth_media', kwargs=kwargs),]
+    return (url(pattern, view, name='auth_media', kwargs=kwargs), )

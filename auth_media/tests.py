@@ -3,16 +3,16 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import zipfile
+from io import BytesIO
 
 from django.conf import settings
 from django.contrib.auth.models import Permission, User
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.core.urlresolvers import resolve, reverse
 from django.db import models
 from django.http import Http404, HttpRequest, HttpResponse
 from django.test import TestCase, client, override_settings
-from django.utils.six import BytesIO
+from django.urls import resolve, reverse
 
 from .backends import interim, secure_link, xaccel
 from .models import AuthFileField

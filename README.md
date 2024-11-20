@@ -2,7 +2,7 @@
 
 Serving media based on authorization checks
 
-The app is tested on Django 1.6.8 to 1.11.17 and has no dependency from other packages
+The app is tested on Django 3.2.25 with Python 3.6.8, and has no dependency from other packages
 
 
 ## Setup
@@ -126,13 +126,21 @@ Reference:
     http://nginx.org/en/docs/http/ngx\_http\_secure\_link\_module.html
 
 
-## Test
+## Test & Deploy
 
-To run tests:
+To run tests (you need pyenv):
 
-    cd testproj
-    pip install -r requirements.txt
-    python manage.py test testapp auth_media
+    make test
+
+To build a package:
+
+    make deploy
+
+distributable package is saved in "dist" folder
+
+To cleanup:
+
+    make clean
 
 
 ## Thanks

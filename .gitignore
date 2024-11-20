@@ -1,3 +1,9 @@
+# Virtual Env
+venv
+
+# SqlLite databse
+testproj/db.sqlite3
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
