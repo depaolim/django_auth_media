@@ -6,9 +6,9 @@ from __future__ import absolute_import
 import re
 
 from django.conf import settings
-from django.conf.urls import url
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.urls import re_path as url
 
 try:
     from django.apps import apps
